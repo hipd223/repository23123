@@ -40,7 +40,6 @@ app.resizable(False, False)
 BG = "#AAB5B3"
 
 app.configure(fg_color=BG)
-app.bind("<Button-1>", lambda e: svc.remove_focus(app=app, event=e))
 
 selected_currency = ctk.StringVar(value="RUB")
 vcmd = (app.register(svc.validate_numbers), '%P')
@@ -117,13 +116,17 @@ left_entry = ctk.CTkEntry(
 left_entry.insert(0, "0")
 left_entry.pack()
 
-# ---------------- CENTER SWAP ----------------  TODO: Доделать кнопку смены валют
+# ---------------- CENTER SWAP ----------------  
 
-btn_image = Image.open(arrow_path)
+btn_image = ctk.CTkImage(
+    light_image=Image.open(arrow_path),
+    dark_image=Image.open(arrow_path),
+    size=(48, 48)
+)
 
 swap_btn = ctk.CTkButton(
     main_frame,
-    text="< >",
+    text="",
     image=btn_image,
     width=80,
     height=80,
@@ -176,7 +179,7 @@ right_entry = ctk.CTkEntry(
 right_entry.insert(0, "0")
 right_entry.pack()
 
-# ----------- DROPDOWN FRAME -----------  TODO: Доделать!
+# ----------- DROPDOWN FRAME -----------  
 
 dropdown_frame = ctk.CTkFrame(
     app,
@@ -185,16 +188,41 @@ dropdown_frame = ctk.CTkFrame(
     fg_color="#E7C7CB"
 )
 
+popular = [
+    "USD",
+    "EUR",
+    "RUB",
+    "GBP",
+    "JPY",
+    "CNY",
+    "KZT",
+    "UAH",
+    "TRY",
+    "CHF"
+]
+currencies = [c for c in popular if c in rates]
+
+dropdown_frame.lift()
+
+app.bind(
+    "<Button-1>",
+    lambda e: svc.remove_focus(
+        app=app,
+        event=e,
+        dropdown_frame=dropdown_frame
+    )
+)
 # ---------------- INFO ----------------
 
 info_label = ctk.CTkLabel(
     app,
     text=f"Курс обновлен в {time.strftime("%H:%M")}",
-    font=("Rubik", 22),
-    text_color="black"
+    font=("Rubik", 20),
+    text_color="black",
+    fg_color="transparent"
 )
 
-info_label.pack(pady=(125, 10))
+info_label.pack(pady=(115, 10))
 
 # ---------------- FOOTER ----------------
 
@@ -217,6 +245,26 @@ left_entry.bind(
         source_btn=left_btn, 
         target_btn=right_btn, 
         rates_dict=rates
+    )
+)
+
+left_btn.configure(
+    command=lambda: svc.open_dropdown(
+        app,
+        left_btn,
+        dropdown_frame,
+        currencies,
+        ctk
+    )
+)
+
+right_btn.configure(
+    command=lambda: svc.open_dropdown(
+        app,
+        right_btn,
+        dropdown_frame,
+        currencies,
+        ctk
     )
 )
 

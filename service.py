@@ -123,57 +123,91 @@ def start_animation(app, label):
     label.configure(text=phrases[0])
     fade_in(app, label)
 
-currencies = ["RUB", "USD", "EUR", "JPY", "GBP"]
+
 is_open = False
 
-def select_currency(selected_currency, currency):
-    selected_currency.set(currency)
+def select_currency(button, dropdown_frame, currency):
+    button.configure(text=currency)
+    close_dropdown(dropdown_frame)
 
-def open_dropdown(dropdown_frame, ctk):
-    from main import selected_currency
+def open_dropdown(app, button, dropdown_frame, currencies, ctk):
+
     global is_open
+
     if is_open:
         close_dropdown(dropdown_frame)
 
-    dropdown_frame.place(x=140, y=150)
-
+    # очищаем старые элементы
     for widget in dropdown_frame.winfo_children():
         widget.destroy()
-    
+
+    # scrollable frame
+    scroll_frame = ctk.CTkScrollableFrame(
+        dropdown_frame,
+        width=180,
+        height=250,
+        fg_color="#E7C7CB"
+    )
+
+    scroll_frame.pack(fill="both", expand=True, padx=5, pady=5)
+
     for curr in currencies:
 
         btn = ctk.CTkButton(
-            dropdown_frame,
+            scroll_frame,
             text=curr,
-            height=45,
-            corner_radius=20,
-            bg_color="transparent",
+            height=40,
+            corner_radius=12,
             fg_color="transparent",
             hover_color="#DDB8BE",
             text_color="black",
-            font=("Rubik", 24)
+            font=("Rubik", 18)
         )
 
         btn.configure(
-            command=lambda c=curr: select_currency(selected_currency, currency=c)
+            command=lambda c=curr: select_currency(button, dropdown_frame, c)
         )
 
-        btn.pack(fill="x", padx=8, pady=4)
+        btn.pack(fill="x", padx=4, pady=2)
 
-        is_open = True
+    # позиция dropdown под кнопкой
+    x = button.winfo_rootx() - app.winfo_rootx()
+    y = button.winfo_rooty() - app.winfo_rooty() + button.winfo_height() + 5
+
+    dropdown_frame.place(x=x, y=y)
+
+    is_open = True
 
 def close_dropdown(dropdown_frame):
     global is_open
-
     dropdown_frame.place_forget()
     is_open = False
 
-def remove_focus(app, event):
+def remove_focus(app, event, dropdown_frame=None):
 
     clicked_widget = event.widget
 
+
     if 'entry' not in str(clicked_widget).lower():
         app.focus_set()
+
+
+    if "button" in str(clicked_widget).lower():
+        return
+
+    if dropdown_frame and is_open:
+
+        x1 = dropdown_frame.winfo_rootx()
+        y1 = dropdown_frame.winfo_rooty()
+
+        x2 = x1 + dropdown_frame.winfo_width()
+        y2 = y1 + dropdown_frame.winfo_height()
+
+        mouse_x = event.x_root
+        mouse_y = event.y_root
+
+        if not (x1 <= mouse_x <= x2 and y1 <= mouse_y <= y2):
+            close_dropdown(dropdown_frame)
 
 def switch_currs(btn1, btn2, entry1, entry2):
     btn1_text = btn1.cget("text")
